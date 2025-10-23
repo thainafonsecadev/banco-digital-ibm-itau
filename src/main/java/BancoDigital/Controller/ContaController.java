@@ -5,10 +5,10 @@ import BancoDigital.Service.ContaService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
-    @RestController
-
-    @RequestMapping("/contas")
+@RestController
+@RequestMapping("/contas")
 
     public class ContaController {
 
@@ -18,44 +18,32 @@ import java.util.List;
         this.contaService = contaService;
     }
 
-    // ABRIR UM NOVA CONTA
-
+    //  ABRIR CONTA
     @PostMapping("/abrir/{idCliente}")
-    public Conta abrirConta(@PathVariable Long idCliente) {
-        return contaService.abrirConta(idCliente);
+    public Conta abrirConta(@PathVariable UUID idCliente, @RequestParam String tipoConta) {
+        return contaService.abrirConta(idCliente, tipoConta);
     }
 
-    // DEPOSITAR
-    @PutMapping("/depositar/{idConta}")
-    public Conta depositar(@PathVariable Long idConta, @RequestParam Double valor) {
-        return contaService.depositar(idConta, valor);
+    //  CONSULTAR CONTA
+    @GetMapping("/{idConta}")
+    public Conta consultarConta(@PathVariable UUID idConta) {
+        return contaService.consultarConta(idConta);
     }
 
-    // SACAR
-    @PutMapping("/sacar/{idConta}")
-    public Conta sacar(@PathVariable Long idConta, @RequestParam Double valor) {
-        return contaService.sacar(idConta, valor);
+    //  ATUALIZAR STATUS
+    @PutMapping("/{idConta}/status")
+    public Conta atualizarStatus(@PathVariable UUID idConta, @RequestParam String status) {
+        return contaService.atualizarStatus(idConta, status);
     }
 
-    // TRANSFERIR
-    @PutMapping("/transferir")
-    public void transferir(
-            @RequestParam Long idContaOrigem,
-
-            @RequestParam Long idContaDestino,
-
-            @RequestParam Double valor) {
-
-        contaService.transferir(idContaOrigem, idContaDestino, valor);
+    //  DELETAR CONTA
+    @DeleteMapping("/{idConta}")
+    public void removerConta(@PathVariable UUID idConta) {
+        contaService.removerConta(idConta);
     }
 
-    // CONSULTAR SALDO
-    @GetMapping("/saldo/{idConta}")
-    public Double consultarSaldo(@PathVariable Long idConta) {
-        return contaService.consultarSaldo(idConta);
-    }
+    //  LISTAR TODAS AS CONTAS
 
-    // LISTAR CONTATOS
     @GetMapping
     public List<Conta> listarContas() {
         return contaService.listarContas();

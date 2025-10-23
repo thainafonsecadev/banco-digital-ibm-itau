@@ -1,15 +1,15 @@
 package BancoDigital.Service;
 
-import BancoDigital.Model.Cliente;
-import BancoDigital.Model.Conta;
+import BancoDigital.Model.*;
 import BancoDigital.Repository.ClienteRepository;
 import BancoDigital.Repository.ContaRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
-    @Service
+@Service
     public class ContaService {
 
     private final ContaRepository contaRepository;
@@ -20,72 +20,68 @@ import java.util.Optional;
         this.clienteRepository = clienteRepository;
     }
 
-    //  ABERTURA DE CONTA
+    //  ABRIR NOVA CONTA
+    public Conta abrirConta(UUID idCliente, String tipoConta) {
+        Cliente cliente = clienteRepository.findById(idCliente)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado!"));
 
-    public Conta abrirConta(Long idCliente) {
-        Optional<Cliente> clienteOpt = clienteRepository.findById(idCliente);
-        if (clienteOpt.isEmpty()) {
-            throw new RuntimeException("Cliente não encontrado!");
+        if (!tipoConta.equalsIgnoreCase("PF") && !tipoConta.equalsIgnoreCase("PJ")) {
+            throw new RuntimeException("Tipo de conta inválido. Use PF ou PJ.");
+        }
+
+        boolean existeContaTemp = contaRepository.existsByClienteIdClienteAndStatus(cliente.getIdCliente(), StatusConta.TEMPORARIO);
+        if (existeContaTemp) {
+            throw new RuntimeException("Cliente já possui uma conta temporária.");
         }
 
         Conta conta = new Conta();
-        conta.setCliente(clienteOpt.get());
+        conta.setCliente(cliente);
+        conta.setTipoConta(TipoConta.valueOf(tipoConta.toUpperCase()));
+        conta.setStatus(StatusConta.TEMPORARIO);
         conta.setSaldo(0.0);
+        conta.setDataCriacao(Instant.now());
+
         return contaRepository.save(conta);
     }
 
-    // DEPOSITAR
-
-    public Conta depositar(Long idConta, Double valor) {
-        Conta conta = contaRepository.findById(idConta).orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
-        conta.setSaldo(conta.getSaldo() + valor);
-        return contaRepository.save(conta);
+    //  CONSULTAR CONTA
+    public Conta consultarConta(UUID idConta) {
+        return contaRepository.findById(idConta)
+                .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
     }
 
-    // SACAR
-
-    public Conta sacar(Long idConta, Double valor) {
+    //  ATUALIZAR STATUS
+    public Conta atualizarStatus(UUID idConta, String novoStatus) {
         Conta conta = contaRepository.findById(idConta)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
 
-        if (conta.getSaldo() < valor) {
-            throw new RuntimeException("Saldo insuficiente!");
+        if (!novoStatus.equalsIgnoreCase("APROVADA") && !novoStatus.equalsIgnoreCase("REPROVADA")) {
+            throw new RuntimeException("Status inválido. Use APROVADA ou REPROVADA.");
         }
 
-        conta.setSaldo(conta.getSaldo() - valor);
+        if (!conta.getStatus().equals(StatusConta.TEMPORARIO)) {
+            throw new RuntimeException("Apenas contas TEMPORARIO podem ser atualizadas.");
+        }
+
+        conta.setStatus(StatusConta.valueOf(novoStatus.toUpperCase()));
+        conta.setDataAtualizacao(Instant.now());
+
         return contaRepository.save(conta);
     }
 
-    // TRANSFERIR
-
-    public void transferir(Long idContaOrigem, Long idContaDestino, Double valor) {
-        Conta origem = contaRepository.findById(idContaOrigem)
-                .orElseThrow(() -> new RuntimeException("Conta de origem não encontrada!"));
-
-        Conta destino = contaRepository.findById(idContaDestino)
-                .orElseThrow(() -> new RuntimeException("Conta de destino não encontrada!"));
-
-        if (origem.getSaldo() < valor) {
-            throw new RuntimeException("Saldo insuficiente para transferência!");
-        }
-
-        origem.setSaldo(origem.getSaldo() - valor);
-        destino.setSaldo(destino.getSaldo() + valor);
-
-        contaRepository.save(origem);
-        contaRepository.save(destino);
-    }
-
-    //  CONSULTAR SALDO
-
-    public Double consultarSaldo(Long idConta) {
+    //  DELETAR CONTA
+    public void removerConta(UUID idConta) {
         Conta conta = contaRepository.findById(idConta)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
-        return conta.getSaldo();
+
+        if (!conta.getStatus().equals(StatusConta.TEMPORARIO)) {
+            throw new RuntimeException("Apenas contas TEMPORARIO podem ser removidas.");
+        }
+
+        contaRepository.delete(conta);
     }
 
     // LISTAR CONTAS
-
     public List<Conta> listarContas() {
         return contaRepository.findAll();
     }
