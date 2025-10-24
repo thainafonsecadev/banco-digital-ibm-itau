@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-    public class ContaService {
+public class ContaService {
 
     private final ContaRepository contaRepository;
     private final ClienteRepository clienteRepository;
@@ -22,16 +22,11 @@ import java.util.UUID;
 
     //  ABRIR NOVA CONTA
     public Conta abrirConta(UUID idCliente, String tipoConta) {
-        Cliente cliente = clienteRepository.findById(idCliente)
+        Cliente cliente = (Cliente) clienteRepository.findById(idCliente)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado!"));
 
         if (!tipoConta.equalsIgnoreCase("PF") && !tipoConta.equalsIgnoreCase("PJ")) {
             throw new RuntimeException("Tipo de conta inválido. Use PF ou PJ.");
-        }
-
-        boolean existeContaTemp = contaRepository.existsByClienteIdClienteAndStatus(cliente.getIdCliente(), StatusConta.TEMPORARIO);
-        if (existeContaTemp) {
-            throw new RuntimeException("Cliente já possui uma conta temporária.");
         }
 
         Conta conta = new Conta();

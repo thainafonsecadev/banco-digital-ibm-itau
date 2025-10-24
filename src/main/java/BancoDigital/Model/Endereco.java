@@ -1,24 +1,19 @@
 package BancoDigital.Model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-
-    public class Endereco {
-
+public class Endereco {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String Cep;
-
-    private String Logradouro;
-
-    private String Cidade;
-
-    private String Estado;
+    private String cep;
+    private String logradouro;
+    private String bairro;
+    private String cidade;
+    private String estado;
 }
+
