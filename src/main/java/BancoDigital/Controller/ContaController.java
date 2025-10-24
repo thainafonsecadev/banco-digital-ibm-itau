@@ -18,31 +18,25 @@ import java.util.UUID;
         this.contaService = contaService;
     }
 
-    //  ABRIR CONTA
     @PostMapping("/abrir/{idCliente}")
     public Conta abrirConta(@PathVariable UUID idCliente, @RequestParam String tipoConta) {
         return contaService.abrirConta(idCliente, tipoConta);
     }
 
-    //  CONSULTAR CONTA
     @GetMapping("/{idConta}")
     public Conta consultarConta(@PathVariable UUID idConta) {
         return contaService.consultarConta(idConta);
     }
 
-    //  ATUALIZAR STATUS
     @PutMapping("/{idConta}/status")
     public Conta atualizarStatus(@PathVariable UUID idConta, @RequestParam String status) {
         return contaService.atualizarStatus(idConta, status);
     }
 
-    //  DELETAR CONTA
     @DeleteMapping("/{idConta}")
     public void removerConta(@PathVariable UUID idConta) {
         contaService.removerConta(idConta);
     }
-
-    //  LISTAR TODAS AS CONTAS
 
     @GetMapping
     public List<Conta> listarContas() {

@@ -19,7 +19,6 @@ import java.util.List;
         this.clienteRepository = clienteRepository;
     }
 
-    // Criar cliente
     @PostMapping
     public Cliente criarCliente(@RequestBody Cliente cliente) {
 
@@ -39,7 +38,6 @@ import java.util.List;
         return clienteRepository.save(cliente);
     }
 
-    // Listar clientes
     @GetMapping
     public List<Cliente> listarClientes() {
         return clienteRepository.findAll();

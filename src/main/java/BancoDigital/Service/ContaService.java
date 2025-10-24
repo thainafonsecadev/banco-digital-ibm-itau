@@ -20,7 +20,6 @@ public class ContaService {
         this.clienteRepository = clienteRepository;
     }
 
-    //  ABRIR NOVA CONTA
     public Conta abrirConta(UUID idCliente, String tipoConta) {
         Cliente cliente = (Cliente) clienteRepository.findById(idCliente)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado!"));
@@ -39,13 +38,11 @@ public class ContaService {
         return contaRepository.save(conta);
     }
 
-    //  CONSULTAR CONTA
     public Conta consultarConta(UUID idConta) {
         return contaRepository.findById(idConta)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
     }
 
-    //  ATUALIZAR STATUS
     public Conta atualizarStatus(UUID idConta, String novoStatus) {
         Conta conta = contaRepository.findById(idConta)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
@@ -64,7 +61,6 @@ public class ContaService {
         return contaRepository.save(conta);
     }
 
-    //  DELETAR CONTA
     public void removerConta(UUID idConta) {
         Conta conta = contaRepository.findById(idConta)
                 .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
@@ -76,7 +72,6 @@ public class ContaService {
         contaRepository.delete(conta);
     }
 
-    // LISTAR CONTAS
     public List<Conta> listarContas() {
         return contaRepository.findAll();
     }
