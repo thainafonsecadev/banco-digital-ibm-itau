@@ -1,11 +1,17 @@
 package BancoDigital.Controller;
 
+import BancoDigital.Exception.ErrorResponse;
 import BancoDigital.Model.Cliente;
 import BancoDigital.Model.Endereco;
 import BancoDigital.Repository.ClienteRepository;
+import BancoDigital.Service.ViaCepService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/clientes")
@@ -13,33 +19,35 @@ import java.util.List;
     public class ClienteController {
 
     private final ClienteRepository clienteRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final ViaCepService viaCepService;
 
-    public ClienteController(ClienteRepository clienteRepository) {
+    public ClienteController(ClienteRepository clienteRepository, ViaCepService viaCepService) {
         this.clienteRepository = clienteRepository;
+        this.viaCepService = viaCepService;
+    }
+
+    @GetMapping("/teste")
+    public String teste() {
+        return "Controller funcionando!";
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Cliente criarCliente(@RequestBody Cliente cliente) {
-
-        // Busca o CEP na API ViaCEP
-        if (cliente.getEndereco() != null && cliente.getEndereco().getCep() != null) {
-            String cep = cliente.getEndereco().getCep().replace("-", "");
-            String url = "https://viacep.com.br/ws/" + cep + "/json/";
-
-            Endereco enderecoViaCep = restTemplate.getForObject(url, Endereco.class);
-
-            if (enderecoViaCep != null) {
-                enderecoViaCep.setCep(cliente.getEndereco().getCep());
-                cliente.setEndereco(enderecoViaCep);
-            }
+        Optional<Cliente> existente = clienteRepository.findByCpfCnpj(cliente.getCpfCnpj());
+        if (existente.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF/CNPJ já cadastrado");
         }
+
+        if (cliente.getEndereco() == null || cliente.getEndereco().getCep() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CEP obrigatório");
+        }
+
+        Endereco enderecoViaCep = viaCepService.buscarEnderecoPorCep(cliente.getEndereco().getCep());
+        cliente.setEndereco(enderecoViaCep);
 
         return clienteRepository.save(cliente);
     }
 
-    @GetMapping
-    public List<Cliente> listarClientes() {
-        return clienteRepository.findAll();
-    }
+    
 }

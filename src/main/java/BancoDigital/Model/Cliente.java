@@ -1,26 +1,26 @@
 package BancoDigital.Model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDate;
+import lombok.Getter;
+import lombok.Setter;
+import java.util.UUID;
 
+@Getter
+@Setter
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class Cliente {
+    public class Cliente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private java.util.UUID id;
+    private UUID id;
 
     private String nomeCompleto;
     private String cpfCnpj;
     private String email;
-    private LocalDate dataNascimento;
+    private String dataNascimento;
 
-    //  Aqui criamos o relacionamento com Endereco
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
+
 }

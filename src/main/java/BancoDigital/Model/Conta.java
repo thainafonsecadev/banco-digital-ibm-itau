@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Conta {
+    public class Conta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -30,4 +30,9 @@ public class Conta {
     @ManyToOne(optional = false)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
+
+    public UUID getClienteId() {
+        return cliente != null ? cliente.getId() : null;
+    }
 }
+

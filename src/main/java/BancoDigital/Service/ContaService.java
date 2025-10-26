@@ -3,14 +3,16 @@ package BancoDigital.Service;
 import BancoDigital.Model.*;
 import BancoDigital.Repository.ClienteRepository;
 import BancoDigital.Repository.ContaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class ContaService {
+    public class ContaService {
 
     private final ContaRepository contaRepository;
     private final ClienteRepository clienteRepository;
@@ -21,11 +23,17 @@ public class ContaService {
     }
 
     public Conta abrirConta(UUID idCliente, String tipoConta) {
-        Cliente cliente = (Cliente) clienteRepository.findById(idCliente)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado!"));
+        Cliente cliente = clienteRepository.findById(idCliente)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
 
         if (!tipoConta.equalsIgnoreCase("PF") && !tipoConta.equalsIgnoreCase("PJ")) {
-            throw new RuntimeException("Tipo de conta inválido. Use PF ou PJ.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de conta inválido");
+        }
+
+        boolean existeContaTemp = contaRepository.existsByCliente_IdAndStatus(idCliente, StatusConta.TEMPORARIO);
+
+        if (existeContaTemp) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente já possui conta temporária");
         }
 
         Conta conta = new Conta();
@@ -38,9 +46,11 @@ public class ContaService {
         return contaRepository.save(conta);
     }
 
+
     public Conta consultarConta(UUID idConta) {
         return contaRepository.findById(idConta)
-                .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta não encontrada."));
+
     }
 
     public Conta atualizarStatus(UUID idConta, String novoStatus) {
@@ -63,16 +73,27 @@ public class ContaService {
 
     public void removerConta(UUID idConta) {
         Conta conta = contaRepository.findById(idConta)
-                .orElseThrow(() -> new RuntimeException("Conta não encontrada!"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta não encontrada."));
 
         if (!conta.getStatus().equals(StatusConta.TEMPORARIO)) {
-            throw new RuntimeException("Apenas contas TEMPORARIO podem ser removidas.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas contas TEMPORARIO podem ser removidas.");
+
         }
 
         contaRepository.delete(conta);
+
     }
 
     public List<Conta> listarContas() {
         return contaRepository.findAll();
+
     }
+
+    public void deletarConta(UUID idConta) {
+        Conta conta = contaRepository.findById(idConta)
+                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
+
+        contaRepository.delete(conta);
+    }
+
 }
