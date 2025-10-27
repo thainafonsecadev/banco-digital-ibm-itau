@@ -35,7 +35,6 @@ public class ContaController {
         }
     }
 
-
     @GetMapping("/{idConta}")
     public ResponseEntity<?> consultarConta(@PathVariable UUID idConta) {
         try {

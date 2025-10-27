@@ -1,12 +1,12 @@
 package BancoDigital.Controller;
 
-import BancoDigital.Exception.ErrorResponse;
+import BancoDigital.DTO.ClienteRequest;
 import BancoDigital.Model.Cliente;
 import BancoDigital.Model.Endereco;
 import BancoDigital.Repository.ClienteRepository;
 import BancoDigital.Service.ViaCepService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/clientes")
-
     public class ClienteController {
 
     private final ClienteRepository clienteRepository;
@@ -33,21 +32,22 @@ import java.util.UUID;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Cliente criarCliente(@RequestBody Cliente cliente) {
-        Optional<Cliente> existente = clienteRepository.findByCpfCnpj(cliente.getCpfCnpj());
+    public Cliente criarCliente(@Valid @RequestBody ClienteRequest clienteRequest) {
+
+        Optional<Cliente> existente = clienteRepository.findByCpfCnpj(clienteRequest.getCpfCnpj());
         if (existente.isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF/CNPJ já cadastrado");
         }
 
-        if (cliente.getEndereco() == null || cliente.getEndereco().getCep() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CEP obrigatório");
-        }
+        Cliente cliente = new Cliente();
+        cliente.setNomeCompleto(clienteRequest.getNomeCompleto());
+        cliente.setCpfCnpj(clienteRequest.getCpfCnpj());
+        cliente.setEmail(clienteRequest.getEmail());
+        cliente.setDataNascimento(clienteRequest.getDataNascimento());
 
-        Endereco enderecoViaCep = viaCepService.buscarEnderecoPorCep(cliente.getEndereco().getCep());
-        cliente.setEndereco(enderecoViaCep);
+        Endereco endereco = viaCepService.buscarEnderecoPorCep(clienteRequest.getEndereco().getCep());
+        cliente.setEndereco(endereco);
 
         return clienteRepository.save(cliente);
     }
-
-    
 }
